@@ -18,7 +18,6 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    // Encontrar o usuário pelo e-mail
     const usuario = await prisma.usuario.findFirst({
       where: { email }
     })
@@ -28,23 +27,21 @@ router.post("/", async (req, res) => {
       return
     }
 
-    // Comparar a senha fornecida com a senha armazenada no banco
     if (bcrypt.compareSync(senha, usuario.senha)) {
-      // Registrar a data/hora do último login
       const dataAtual = new Date()
 
       await prisma.usuario.update({
         where: { id: usuario.id },
-        data: { ultimoAcesso: dataAtual } // Atualizando a data do último login
+        data: { ultimoAcesso: dataAtual }
       })
 
-      // Gerar o token JWT
+   
       const token = jwt.sign({
         userLogadoId: usuario.id,
         userLogadoNome: usuario.nome
       }, process.env.JWT_KEY as string, { expiresIn: "1h" })
 
-      // Exibir a mensagem de boas-vindas
+
       const ultimoAcessoMensagem = usuario.ultimoAcesso
         ? `Seu último acesso foi em: ${usuario.ultimoAcesso.toISOString()}`
         : "Este é o seu primeiro acesso ao sistema."
@@ -58,7 +55,6 @@ router.post("/", async (req, res) => {
         mensagem: `Bem-vindo ${usuario.nome}. ${ultimoAcessoMensagem}`
       })
     } else {
-      // Caso a senha não seja correta, registrar tentativa de login inválida
       await prisma.log.create({
         data: {
           descricao: "Tentativa de Acesso Inválida",
@@ -151,7 +147,7 @@ router.put("/alterar-senha", async (req, res) => {
       return
     }
 
-    // Validar a senha atual
+
     if (!bcrypt.compareSync(senhaAtual, usuario.senha)) {
       await prisma.log.create({
         data: { 
@@ -166,10 +162,8 @@ router.put("/alterar-senha", async (req, res) => {
       return
     }
 
-    // Criptografar a nova senha
     const senhaCriptografada = await bcrypt.hash(novaSenha, 10)
 
-    // Atualizar a senha no banco de dados
     await prisma.usuario.update({
       where: { id: usuario.id },
       data: { senha: senhaCriptografada }

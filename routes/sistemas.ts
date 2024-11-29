@@ -99,7 +99,7 @@ router.put("/:id", verificaToken, async (req, res) => {
   }
 })
 
-// quando quisermos alterar apenas algum/alguns atributo(s)
+
 router.patch("/:id", async (req, res) => {
   const { id } = req.params
 
